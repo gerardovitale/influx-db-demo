@@ -15,3 +15,13 @@ services:
             - DOCKER_INFLUXDB_INIT_PASSWORD="admin2021"     # The password to set for the system's initial super-user (Required).
             - DOCKER_INFLUXDB_INIT_ORG="organization"       # The name to set for the system's initial organization (Required).
             - DOCKER_INFLUXDB_INIT_BUCKET="initial_bucket"  # The name to set for the system's initial bucket (Required).
+        restart: always
+
+    app:
+        build:
+            context: .
+        image: gerardovitale/influx-app
+        container_name: covid-pipeline-app
+        depends_on:
+            - influxdb
+
