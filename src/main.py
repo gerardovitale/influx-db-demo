@@ -10,10 +10,14 @@ ORG = os.environ.get('INFLUXDB_INIT_ORG')
 BUCKET = os.environ.get('INFLUXDB_INIT_BUCKET')
 TOKEN = os.environ.get('INFLUXDB_INIT_ADMIN_TOKEN')
 URL = "http://influxdb:8086"
-YAHOO_CONFIG = {
+
+YAHOO_PARAMS = {
     'tickers': 'TSLA',
     'period': '5d',
     'interval': '1d',
+}
+QUERY_PARAMS = {
+    'start_range': '5d',
 }
 
 
@@ -24,29 +28,39 @@ def time() -> str:
 if __name__ == "__main__":
     print('[INFO] {0} Executing: {1}'.format(time(), __name__))
 
+    # InfluxDB Client
     client = influxdb_client.InfluxDBClient(url=URL, token=TOKEN, org=ORG)
     write_api = client.write_api(write_options=SYNCHRONOUS)
     query_api = client.query_api()
 
-    data: DataFrame = yf.download(**YAHOO_CONFIG)
+    # Extract Data from Yahoo Finance API
+    data: DataFrame = yf.download(**YAHOO_PARAMS)
     data.reset_index(inplace=True)
 
+    # Load dataset into InfluxDB
     datapoint_list = []
     for record in data.to_dict('records'):
         datapoint = influxdb_client.Point('stocks') \
-            .tag('market', 'NASDAQ').tag('ticker', YAHOO_CONFIG['tickers']) \
-            .field('open', record['Open']).field('high', record['High']).field('low', record['Low']) \
-            .field('close', record['Close']).field('adj_close', record['Adj Close']).field('volume', record['Volume']) \
+            .tag('market', 'NASDAQ')\
+            .tag('ticker', YAHOO_PARAMS['tickers']) \
+            .field('open', record['Open'])\
+            .field('high', record['High'])\
+            .field('low', record['Low']) \
+            .field('close', record['Close'])\
+            .field('adj_close', record['Adj Close'])\
+            .field('volume', record['Volume']) \
             .time(record['Date'])
         datapoint_list.append(datapoint)
     write_api.write(bucket=BUCKET, org=ORG, record=datapoint_list)
 
     print('[INFO] {0} Data loaded into InfluxDB'.format(time()))
 
-    tables = query_api.query('from(bucket:"{0}") |> range(start: -1y)'.format(BUCKET))
+    # Consult data from InfluxDB
+    tables = query_api.query('from(bucket:"{0}") |> range(start: -{1})'.format(
+        BUCKET, QUERY_PARAMS['start_range']))
     for table in tables:
-        print('=> TABLE: ', table)
+        print('=> TABLE: ', type(table), table)
         for row in table.records:
-            print('=> ROW: ', row.values)
+            print('=> ROW: ', type(row.values), row.values)
 
     print("[INFO] {0} Execution's finished".format(time()))
