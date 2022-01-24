@@ -8,8 +8,6 @@ RUN apt-get update && \
 
 ENV PATH="/opt/venv/bin:$PATH"
 
-COPY ./requirements.txt ${CONTAINER_BASE_DIR}/requirements.txt
-
 COPY ./requirements.txt /requirements.txt
 
 RUN pip install --upgrade pip && \
