@@ -48,7 +48,7 @@ if __name__ == "__main__":
                           .field('adj_close', record['Adj Close']) \
                           .field('volume', record['Volume']) \
                           .time(record['Date'])
-                      for record in data.to_dict()]
+                      for record in data.to_dict('records')]
 
     write_api.write(bucket=BUCKET, org=ORG, record=datapoint_list)
 
