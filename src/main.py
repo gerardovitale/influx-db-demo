@@ -13,7 +13,7 @@ URL = "http://influxdb:8086"
 
 YAHOO_PARAMS = {
     'tickers': 'TSLA',
-    'period': '5d',
+    'period': '5y',
     'interval': '1d',
 }
 QUERY_PARAMS = {
@@ -38,19 +38,18 @@ if __name__ == "__main__":
     data.reset_index(inplace=True)
 
     # Load dataset into InfluxDB
-    datapoint_list = []
-    for record in data.to_dict('records'):
-        datapoint = influxdb_client.Point('stocks') \
-            .tag('market', 'NASDAQ')\
-            .tag('ticker', YAHOO_PARAMS['tickers']) \
-            .field('open', record['Open'])\
-            .field('high', record['High'])\
-            .field('low', record['Low']) \
-            .field('close', record['Close'])\
-            .field('adj_close', record['Adj Close'])\
-            .field('volume', record['Volume']) \
-            .time(record['Date'])
-        datapoint_list.append(datapoint)
+    datapoint_list = [influxdb_client.Point('stocks') \
+                          .tag('market', 'NASDAQ') \
+                          .tag('ticker', YAHOO_PARAMS['tickers']) \
+                          .field('open', record['Open']) \
+                          .field('high', record['High']) \
+                          .field('low', record['Low']) \
+                          .field('close', record['Close']) \
+                          .field('adj_close', record['Adj Close']) \
+                          .field('volume', record['Volume']) \
+                          .time(record['Date'])
+                      for record in data.to_dict()]
+
     write_api.write(bucket=BUCKET, org=ORG, record=datapoint_list)
 
     print('[INFO] {0} Data loaded into InfluxDB'.format(time()))
