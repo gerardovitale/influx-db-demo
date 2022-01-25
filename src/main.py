@@ -15,13 +15,13 @@ cfg = Config(PARAMS)
 def run_demo(config: Config) -> None:
     print('[INFO] {0} Executing: {1}'.format(ct(), __name__))
 
-    data = extract_data(config=cfg)
-    load_data(config=cfg,  data=data)
+    data = extract_data(config=config)
+    load_data(config=config,  data=data)
 
     print('[INFO] {0} Data loaded into InfluxDB'.format(ct()))
 
-    read_data(config=cfg)
-    cfg.client.close()
+    read_data(config=config)
+    config.client.close()
 
     print("[INFO] {0} Execution's finished".format(ct()))
 
