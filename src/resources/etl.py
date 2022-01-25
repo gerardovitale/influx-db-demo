@@ -3,7 +3,10 @@ from typing import List
 import yfinance as yf
 from influxdb_client import Point
 from influxdb_client.client.write_api import SYNCHRONOUS
-from pandas import DataFrame
+from pandas import DataFrame, option_context
+
+option_context('display.max_columns', None,
+               'display.precision', 3, )
 
 from resources.config import Config
 from resources.time_it import time_it
@@ -11,8 +14,7 @@ from resources.time_it import time_it
 
 @time_it
 def extract_data(config: Config) -> DataFrame:
-    df = yf.download(**config.yahoo_params)
-    df.reset_index(inplace=True)
+    df = yf.download(**config.yahoo_params, group_by='tickers')
     return df
 
 
@@ -34,12 +36,15 @@ def parse_data(data: DataFrame, ticker: str) -> List[Point]:
 def load_data(config: Config, data: DataFrame) -> None:
     tickers = config.yahoo_params.get('tickers')
     write_api = config.client.write_api(write_options=SYNCHRONOUS)
+
     if isinstance(tickers, str):
         datapoint_list = parse_data(data, tickers)
         write_api.write(bucket=config.BUCKET, org=config.ORG, record=datapoint_list)
+
     elif isinstance(tickers, list):
         for ticker in tickers:
-            datapoint_list = parse_data(data, ticker)
+            ticker_df = data[ticker].reset_index()
+            datapoint_list = parse_data(ticker_df, ticker)
             write_api.write(bucket=config.BUCKET, org=config.ORG, record=datapoint_list)
 
 
