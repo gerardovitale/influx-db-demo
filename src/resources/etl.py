@@ -17,9 +17,9 @@ def extract_data(config: Config) -> DataFrame:
 
 
 @time_it
-def parse_data(data: DataFrame, params: dict) -> List[Point]:
+def parse_data(data: DataFrame, ticker: str) -> List[Point]:
     return [Point('stocks') \
-                .tag('ticker', params['tickers']) \
+                .tag('ticker', ticker) \
                 .field('open', record['Open']) \
                 .field('high', record['High']) \
                 .field('low', record['Low']) \
@@ -32,9 +32,15 @@ def parse_data(data: DataFrame, params: dict) -> List[Point]:
 
 @time_it
 def load_data(config: Config, data: DataFrame) -> None:
+    tickers = config.yahoo_params.get('tickers')
     write_api = config.client.write_api(write_options=SYNCHRONOUS)
-    datapoint_list = parse_data(data, config.yahoo_params)
-    write_api.write(bucket=config.BUCKET, org=config.ORG, record=datapoint_list)
+    if isinstance(tickers, str):
+        datapoint_list = parse_data(data, tickers)
+        write_api.write(bucket=config.BUCKET, org=config.ORG, record=datapoint_list)
+    elif isinstance(tickers, list):
+        for ticker in tickers:
+            datapoint_list = parse_data(data, ticker)
+            write_api.write(bucket=config.BUCKET, org=config.ORG, record=datapoint_list)
 
 
 @time_it
