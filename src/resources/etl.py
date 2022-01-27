@@ -38,7 +38,7 @@ def load_data(config: Config, data: DataFrame) -> None:
     write_api = config.client.write_api(write_options=SYNCHRONOUS)
 
     if isinstance(tickers, str):
-        datapoint_list = parse_data(data, tickers)
+        datapoint_list = parse_data(data.reset_index(), tickers)
         write_api.write(bucket=config.BUCKET, org=config.ORG, record=datapoint_list)
 
     elif isinstance(tickers, list):
