@@ -4,7 +4,7 @@ version: "3"
 
 services:
     influxdb:
-        image: influxdb:2.1.1
+        image: influxdb:2.1-alpine
         container_name: influxdb
         ports:
             - "8086:8086"
@@ -21,6 +21,20 @@ services:
             interval: 30s
             timeout: 10s
             retries: 5
+
+    telegraf:
+        image: telegraf:1.19-alpine
+        container_name: telegraf
+        environment:
+            - DOCKER_INFLUXDB_INIT_ORG=organization
+            - DOCKER_INFLUXDB_INIT_BUCKET=initialBucket
+            - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=thisShouldBeSecret
+        volumes:
+            - ./config/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+            - /var/run/docker.sock:/var/run/docker.sock
+        restart: always
+        depends_on:
+            - influxdb
 
     app:
         build:
