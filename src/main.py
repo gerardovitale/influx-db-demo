@@ -2,14 +2,9 @@ from resources.config import Config
 from resources.etl import extract_data, load_data, read_data
 from resources.time_it import ct
 
-# 'yahoo_tickers': {
-#         'cryptos': ['BTC-USD', 'SOL-USD', 'LUNA1-USD', 'DOGE-USD'],
-#         'nasdaq': ['TSLA', 'AAPL', 'FB', 'AMZN', 'GOOG'],
-#     },
-
 PARAMS = {
     # 'yahoo_tickers': ['BTC-USD', 'SOL-USD', 'LUNA1-USD', 'DOGE-USD'],
-    'yahoo_tickers': ['TSLA', 'AAPL', 'FB', 'AMZN', 'GOOG'],
+    # 'yahoo_tickers': ['TSLA', 'AAPL', 'FB', 'AMZN', 'GOOG'],
     'yahoo_period': '1y',
     'yahoo_interval': '1d',
     'query_start_range': '1d',
